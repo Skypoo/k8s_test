@@ -1,0 +1,33 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+  args:
+    - build
+    - -f
+    - cloudbuild/Dockerfile
+    - -t
+    - gcr.io/$PROJECT_ID/$REPO_NAME:$REVISION_ID
+    - .
+
+  - name: gcr.io/cloud-builders/docker
+  args:
+    - push
+    - gcr.io/$PROJECT_ID/$REPO_NAME:$REVISION_ID
+
+  - name: gcr.io/cloud-builders/gcloud
+  args:
+    - container
+    - clusters
+    - get-credentials
+    - test
+    - --project=test-316807
+    - --zone=asia-east1-a
+  - name: gcr.io/cloud-builders/kubectl
+  args:
+    - set
+    - image
+    - deployment/test
+    - test=gcr.io/$PROJECT_ID/$REPO_NAME:$REVISION_ID
+  env: # 環境檔 (新版 GKE 設定用)
+    - 'CLOUDSDK_COMPUTE_ZONE=asia-east1-a'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=test'
+    - 'CLOUDSDK_PROJECT_NAME=Test'
